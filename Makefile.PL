@@ -2,8 +2,8 @@
 # Author          : Johan Vromans
 # Created On      : Sat Jun  6 16:08:33 1998
 # Last Modified By: Johan Vromans
-# Last Modified On: Thu Jul 13 18:48:56 2000
-# Update Count    : 19
+# Last Modified On: Sat Jun 23 12:48:57 2001
+# Update Count    : 25
 # Status          : Released
 
 use ExtUtils::MakeMaker;
@@ -30,10 +30,10 @@ EOD
 WriteMakefile
   (
    NAME         => "$scripts[0]",
-   VERSION      => "1.7",
+   VERSION_FROM => "script/$scripts[0]",
    ($] >= 5.005) ?
    ( AUTHOR	=> 'Johan Vromans (jvromans@squirrel.nl)',
-     ABSTRACT	=> 'Modules to get info for/from PostScript fonts' ) : (),
+     ABSTRACT	=> 'Convert EPS files to PNG, JPG or GIF' ) : (),
    PREREQ_PM	=> { 'Getopt::Long' => 2.1 },
    EXE_FILES    => [ map { "script/$_" } @scripts ],
  );

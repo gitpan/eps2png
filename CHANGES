@@ -1,0 +1,9 @@
+Release 2.1, Fri Jun 22 2001
+============================
+
+ * Added support for antialiasing (enabled by default).
+
+ * Enhanced documentation and cleaned up the kit.
+
+ * Added install tests (make test).
+

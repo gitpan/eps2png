@@ -1,6 +1,13 @@
 README
+CHANGES
 MANIFEST
 Makefile.PL
 script/eps2png
-
-
+t/basic.pl
+t/eps2gif.t
+t/eps2jpg.t
+t/eps2png.t
+t/x1.eps
+t/x1.gif
+t/x1.jpg
+t/x1.png
