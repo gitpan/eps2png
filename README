@@ -5,7 +5,7 @@ It uses GhostScript to produce the images. Since modern GhostScript
 programs do not support GIF anymore, GIF images are produced via the
 Portable BitMap converters (PBM-package).
 
-This program is distributed under the Perl Artistic License.
+This program is distributed under the Perl Artistic License and the GPL.
 
      Johan Vromans <jvromans@squirrel.nl>
 

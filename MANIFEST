@@ -1,5 +1,6 @@
 README
 MANIFEST
 Makefile.PL
-eps2png.PL
+script/eps2png
+
 

@@ -1,37 +1,12 @@
-use Config;
-use File::Basename qw(&basename &dirname);
-
-# List explicitly here the variables you want Configure to
-# generate.  Metaconfig only looks for shell variables, so you
-# have to mention them as if they were shell variables, not
-# %Config entries.  Thus you write
-#  $startperl
-# to ensure Configure will look for $Config{startperl}.
-
-# This forces PL files to create target in same directory as PL file.
-# This is so that make depend always knows where to find PL derivatives.
-chdir(dirname($0));
-($file = basename($0)) =~ s/\.PL$//;
-$file =~ s/\.pl$//
-	if ($^O eq 'VMS' or $^O eq 'os2');  # "case-forgiving"
-
-open OUT,">$file" or die "Can't create $file: $!";
-
-print "Extracting $file (with variable substitutions)\n";
-
-# In this section, perl variables will be expanded during extraction.
-# You can use $Config{...} to use Configure variables.
-
-print OUT <<'!NO!SUBS!';
 #! perl
 
-my $RCS_Id = '$Id: eps2png.pl,v 1.5 1998-11-11 09:22:41+01 jv Exp $ ';
+my $RCS_Id = '$Id: eps2png.pl,v 1.7 2000-07-10 17:32:08+02 jv Exp $ ';
 
 # Author          : Johan Vromans
 # Created On      : Tue Sep 15 15:59:04 1992
 # Last Modified By: Johan Vromans
-# Last Modified On: Wed Nov 11 09:20:40 1998
-# Update Count    : 72
+# Last Modified On: Mon Jul 10 17:25:27 2000
+# Update Count    : 74
 # Status          : Unknown, Use with caution!
 
 ################ Common stuff ################
@@ -111,7 +86,7 @@ foreach $eps_file ( @ARGV ) {
     while ( $line = <EPS> ) {
 
 	# Search for BoundingBox.
-	if ( $line =~ /^%%BoundingBox:\s*(.+)\s+(.+)\s+(.+)\s+(.+)/i ) {
+	if ( $line =~ /^%%BoundingBox:\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/i ) {
 
 	    # Create PostScript code to translate coordinates.
 	    print PS ("%!PS\n",
@@ -350,12 +325,22 @@ accessible through the user's C<PATH>.
 GhostScript is assumed to be capable of handling all the image types
 listed above.
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT AND DISCLAIMER
 
-This program is distributed under the Artistic License.
+This program is Copyright 1994,2000 by Johan Vromans.
+This program is free software; you can redistribute it and/or
+modify it under the terms of the Perl Artistic License or the
+GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+If you do not have a copy of the GNU General Public License write to
+the Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
+MA 02139, USA.
 
 =cut
-!NO!SUBS!
-close OUT or die "Can't close $file: $!";
-chmod 0755, $file or die "Can't reset permissions for $file: $!\n";
-exec("$Config{'eunicefix'} $file") if $Config{'eunicefix'} ne ':';
