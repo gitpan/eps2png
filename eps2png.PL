@@ -25,13 +25,13 @@ print "Extracting $file (with variable substitutions)\n";
 print OUT <<'!NO!SUBS!';
 #! perl
 
-my $RCS_Id = '$Id: eps2png.pl,v 1.4 1998-06-07 13:52:16+02 jv Exp $ ';
+my $RCS_Id = '$Id: eps2png.pl,v 1.5 1998-11-11 09:22:41+01 jv Exp $ ';
 
 # Author          : Johan Vromans
 # Created On      : Tue Sep 15 15:59:04 1992
 # Last Modified By: Johan Vromans
-# Last Modified On: Sun Jun  7 13:50:34 1998
-# Update Count    : 71
+# Last Modified On: Wed Nov 11 09:20:40 1998
+# Update Count    : 72
 # Status          : Unknown, Use with caution!
 
 ################ Common stuff ################
@@ -256,7 +256,7 @@ sub handle_options {
 			     'gif'       => \&set_out_type,
 			     'gifmono'   => \&set_out_type,
 			     'mono!'     => \$mono,
-			     'res'       => \$res,
+			     'res=i'     => \$res,
 			     'pbm!'      => \$use_pbm,
 			     'keep!'     => \$keep,
 			     'trace'     => \$trace,
