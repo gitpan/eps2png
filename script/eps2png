@@ -1,12 +1,15 @@
-#! perl
+#!/opt/perl-5.6.0/bin/perl
 
-my $RCS_Id = '$Id: eps2png.pl,v 1.7 2000-07-10 17:32:08+02 jv Exp $ ';
+eval 'exec /opt/perl-5.6.0/bin/perl  -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+
+my $RCS_Id = '$Id: eps2png.pl,v 1.8 2000-07-11 19:04:40+02 jv Exp $ ';
 
 # Author          : Johan Vromans
 # Created On      : Tue Sep 15 15:59:04 1992
 # Last Modified By: Johan Vromans
-# Last Modified On: Mon Jul 10 17:25:27 2000
-# Update Count    : 74
+# Last Modified On: Tue Jul 11 19:04:01 2000
+# Update Count    : 104
 # Status          : Unknown, Use with caution!
 
 ################ Common stuff ################
@@ -32,7 +35,6 @@ my $mono = 0;			# produce BW images if non-zero
 my $format;			# output format
 my $gs_format;			# GS output type
 my $output;			# output, defaults to STDOUT
-my $keep = 0;			# keep intermediate files
 
 my ($verbose,$trace,$test,$debug) = (0,0,0,0);
 handle_options ();
@@ -51,11 +53,8 @@ $verbose |= $trace;
 
 ################ Presets ################
 
-my $TMPDIR = $ENV{"TMPDIR"} || "/usr/tmp";
-
 ################ The Process ################
 
-my $ps_file = $TMPDIR . "/cv$$.ps";
 my $eps_file;
 my $err = 0;
 
@@ -74,14 +73,9 @@ foreach $eps_file ( @ARGV ) {
 	next;
     }
 
-    unless ( open (PS, '>'.$ps_file) ) {
-	print STDERR ("Cannot create $ps_file [$!], $eps_file skipped\n");
-	$err++;
-	next;
-    }
-
-    my $width;
-    my $height;
+    my $width;			# actual width
+    my $height;			# actual height
+    my $ps;			# PostScript input data
 
     while ( $line = <EPS> ) {
 
@@ -89,12 +83,11 @@ foreach $eps_file ( @ARGV ) {
 	if ( $line =~ /^%%BoundingBox:\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/i ) {
 
 	    # Create PostScript code to translate coordinates.
-	    print PS ("%!PS\n",
-		      "$scale $scale scale\n",
-		      0-$1, " ", 0-$2, " translate\n",
-		      "($eps_file) run\n",
-		      "showpage\n",
-		      "quit\n");
+	    $ps = ($scale == 1 ? "" : "$scale $scale scale\n").
+	      (0-$1) . " " . (0-$2) . " translate\n".
+		"($eps_file) run\n".
+		  "showpage\n".
+		    "quit\n";
 
 	    # Calculate actual width.
 	    $width  = $3 - $1;
@@ -116,54 +109,51 @@ foreach $eps_file ( @ARGV ) {
 	    last;
 	}
     }
-    close (PS);
     close (EPS);
 
-    my $out_file;
+    my $out_file;		# output file
+    my $pbm_file;		# temporary file for PBM conversion
+
+    # Note the temporary PBM file is created where the output file is
+    # located, since that will guarantee accessibility (and a valid
+    # filename).
     if ( defined $output ) {
 	$out_file = $output;
+	$pbm_file = $output.".ppm";
     }
     elsif ( $eps_file =~ /^(.+).epsf?$/i ) {
 	$out_file = "$1.$format";
+	$pbm_file = $1.".ppm";
     }
     else {
 	$out_file = $eps_file . ".$format";
+	$pbm_file = $eps_file . ".ppm";
     }
     print STDERR ("Creating $out_file\n") if $verbose;
 
+    my $gs0 = "gs -q -dNOPAUSE -r$res -g${width}x$height";
+    my $gs1 = "-";
     if ( $format eq 'png' ) {
-	mysystem ("gs -q -sDEVICE=".
-		  ($mono ? "pngmono" : $gs_format).
-		  " -dNOPAUSE -sOutputFile=$out_file ".
-		  "-r$res -g${width}x$height $ps_file");
-	unlink ($ps_file) unless $keep;
+	mysystem ("$gs0 -sDEVICE=". ($mono ? "pngmono" : $gs_format).
+		  " -sOutputFile=$out_file $gs1", $ps);
     }
     elsif ( $format eq 'jpg' ) {
-	mysystem ("gs -q -sDEVICE=".
-		  ($mono ? "jpeggray" : $gs_format).
-		  " -dNOPAUSE -sOutputFile=$out_file ".
-		  "-r$res -g${width}x$height $ps_file");
-	unlink ($ps_file) unless $keep;
+	mysystem ("$gs0 -sDEVICE=". ($mono ? "jpeggray" : $gs_format).
+		  " -sOutputFile=$out_file $gs1", $ps);
     }
     elsif ( $format eq 'gif' ) {
 	if ( $use_pbm ) {
 	    # Convert to PPM and use some of the PBM converters.
-	    my $pbm_file = $TMPDIR . "/cv$$.ppm";
-	    mysystem ("gs -q -sDEVICE=".
-		      ($mono ? "pbm" : "ppm").
-		      " -dNOPAUSE -sOutputFile=$pbm_file ".
-		      "-r$res -g${width}x$height $ps_file");
+	    mysystem ("$gs0 -sDEVICE=". ($mono ? "pbm" : "ppm").
+		      " -sOutputFile=$pbm_file $gs1", $ps);
 	    # mysystem ("pnmcrop $pbm_file | ppmtogif > $out_file");
 	    mysystem ("ppmtogif $pbm_file > $out_file");
-	    unlink ($pbm_file, $ps_file) unless $keep;
+	    unlink ($pbm_file);
 	}
 	else {
 	    # GhostScript has GIF drivers built-in.
-	    mysystem ("gs -q -sDEVICE=".
-		      ($mono ? "gifmono" : "gif8").
-		      " -dNOPAUSE -sOutputFile=$out_file ".
-		      "-r$res -g${width}x$height $ps_file");
-	    unlink ($ps_file) unless $keep;
+	    mysystem ("$gs0 -sDEVICE=". ($mono ? "gifmono" : "gif8").
+		      " -sOutputFile=$out_file $gs1", $ps);
 	}
     }
     else {
@@ -181,13 +171,25 @@ exit ( $err ? 1 : 0 );
 
 ################ Subroutines ################
 
-sub mysystem ($) {
-    my ($cmd) = @_;
+sub mysystem {
+    my ($cmd, $data) = @_;
     print STDERR ("+ $cmd\n") if $trace;
-    system ($cmd);
+    if ( $data ) {
+	if ( $trace ) {
+	    my $dp = ">> " . $data;
+	    $dp =~ s/\n(.)/\n>> $1/g;
+	    print STDERR ("$dp");
+	}
+	open (CMD, "|$cmd") or die ("cmd: $!\n");
+	print CMD $data;
+	close CMD or die ("cmd close: $!\n");
+    }
+    else {
+	system ($cmd);
+    }
 }
 
-sub set_out_type () {
+sub set_out_type {
     my ($opt) = lc (shift (@_));
     if ( $opt =~ /^png(mono|gray|16|256|16m)?$/ ) {
 	$format = 'png';
@@ -233,7 +235,6 @@ sub handle_options {
 			     'mono!'     => \$mono,
 			     'res=i'     => \$res,
 			     'pbm!'      => \$use_pbm,
-			     'keep!'     => \$keep,
 			     'trace'     => \$trace,
 			     'help'      => \$help,
 			     'debug'     => \$debug)
@@ -245,7 +246,7 @@ sub handle_options {
     usage () if @ARGV > 1 && defined $output;
 }
 
-sub usage () {
+sub usage {
     print STDERR <<EndOfUsage;
 This is $my_package [$my_name $my_version]
 Usage: $0 [options] file [...]
@@ -260,7 +261,6 @@ Usage: $0 [options] file [...]
     -scale XXX		scaling factor
     -[no]pbm		GIF only: [do not] convert via pbm format
     -output XXX		output to this file (only one input file)
-    -[no]keep		[do not] keep temp files
     -help		this message
     -ident		show identification
     -verbose		verbose information
@@ -293,7 +293,9 @@ I<only> install C<eps2png>.
 
 It uses GhostScript to produce the images. Since modern GhostScript
 programs do not support GIF anymore, GIF images are produced via the
-Portable PixMap converters (PBM-package).
+Portable PixMap converters (PBM-package). In this case, a temporary
+file is created, named after the output file, with the extension
+replaced by ".ppm". It is deleted upon completion.
 
 =head1 ARGUMENTS
 
@@ -307,7 +309,6 @@ Portable PixMap converters (PBM-package).
     -scale XXX		scaling factor
     -[no]pbm		GIF only: [do not] convert via pbm format
     -output XXX		output to this file (only one input file)
-    -[no]keep		[do not] keep temp files
     -help		this message
     -ident		show identification
     -verbose		verbose information

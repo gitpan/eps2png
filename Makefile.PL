@@ -2,8 +2,8 @@
 # Author          : Johan Vromans
 # Created On      : Sat Jun  6 16:08:33 1998
 # Last Modified By: Johan Vromans
-# Last Modified On: Mon Jul 10 17:30:12 2000
-# Update Count    : 18
+# Last Modified On: Thu Jul 13 18:48:56 2000
+# Update Count    : 19
 # Status          : Released
 
 use ExtUtils::MakeMaker;
@@ -30,7 +30,7 @@ EOD
 WriteMakefile
   (
    NAME         => "$scripts[0]",
-   VERSION      => "1.6",
+   VERSION      => "1.7",
    ($] >= 5.005) ?
    ( AUTHOR	=> 'Johan Vromans (jvromans@squirrel.nl)',
      ABSTRACT	=> 'Modules to get info for/from PostScript fonts' ) : (),
