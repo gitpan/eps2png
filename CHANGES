@@ -1,5 +1,12 @@
-Release 2.1, Fri Jun 22 2001
-============================
+Release 2.2, Mon Jun 25, 2001
+=============================
+
+ * Add -width and -height options.
+
+ * Add more tests.
+
+Release 2.1, Fri Jun 22, 2001
+=============================
 
  * Added support for antialiasing (enabled by default).
 

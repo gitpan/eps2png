@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 
-my $RCS_Id = '$Id: eps2png.pl,v 2.1 2001-06-23 12:50:24+02 jv Exp $ ';
+my $RCS_Id = '$Id: eps2png.pl,v 2.2 2001-06-25 18:35:25+02 jv Exp $ ';
 
 # Author          : Johan Vromans
 # Created On      : Tue Sep 15 15:59:04 1992
 # Last Modified By: Johan Vromans
-# Last Modified On: Sat Jun 23 12:25:26 2001
-# Update Count    : 126
+# Last Modified On: Sun Jun 24 17:07:29 2001
+# Update Count    : 155
 # Status          : Okay
 
 ################ Common stuff ################
@@ -19,7 +19,7 @@ my ($my_name, $my_version) = $RCS_Id =~ /: (.+).pl,v ([\d.]+)/;
 $my_version .= '*' if length('$Locker:  $ ') > 12;
 
 use vars qw($VERSION);
-( $VERSION ) = '$Revision: 2.1 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.2 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 ################ Program parameters ################
 
@@ -36,6 +36,8 @@ my $format;			# output format
 my $gs_format;			# GS output type
 my $output;			# output, defaults to STDOUT
 my $antialias = 4;              # antialiasing
+my $width;			# desired widht
+my $height;			# desired height
 
 my ($verbose,$trace,$test,$debug) = (0,0,0,0);
 handle_options ();
@@ -74,34 +76,67 @@ foreach $eps_file ( @ARGV ) {
 	next;
     }
 
-    my $width;			# actual width
-    my $height;			# actual height
-    my $ps;			# PostScript input data
+    my $ps = "";		# PostScript input data
+    my $xscale;
+    my $yscale;
 
     while ( $line = <EPS> ) {
 
 	# Search for BoundingBox.
 	if ( $line =~ /^%%BoundingBox:\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/i ) {
 
-	    # Create PostScript code to translate coordinates.
-	    $ps = ($scale == 1 ? "" : "$scale $scale scale\n").
-	      (0-$1) . " " . (0-$2) . " translate\n".
-		"($eps_file) run\n".
-		  "showpage\n".
-		    "quit\n";
-
-	    # Calculate actual width.
-	    $width  = $3 - $1;
-	    $height = $4 - $2;
-	    print STDERR ("$eps_file: x0=$1, y0=$2, w=$width, h=$height")
+	    print STDERR ("$eps_file: x0=$1, y0=$2, w=", $3-$1, ", h=", $4-$2)
 		if $verbose;
-	    # Normal PostScript resolution is 72.
-	    $width  *= $res/72 * $scale;
-	    $height *= $res/72 * $scale;
-	    # Round up.
-	    $width  = int ($width + 0.5) + 1;
-	    $height = int ($height + 0.5) + 1;
+
+	    if ( defined $width ) {
+		$res = 72;
+		$xscale = $width / ($3 - $1);
+		if ( defined $height ) {
+		    $yscale = $height / ($4 - $2);
+		}
+		else {
+		    $yscale = $xscale;
+		    $height = ($4 - $2) * $yscale;
+		}
+	    }
+	    elsif ( defined $height ) {
+		$res = 72;
+		$yscale = $height / ($4 - $2);
+		if ( defined $width ) {
+		    $xscale = $width / ($3 - $1);
+		}
+		else {
+		    $xscale = $yscale;
+		    $width = ($3 - $1) * $xscale;
+		}
+	    }
+	    unless ( defined $xscale ) {
+		$xscale = $yscale = $scale;
+		# Calculate actual width.
+		$width  = $3 - $1;
+		$height = $4 - $2;
+		# Normal PostScript resolution is 72.
+		$width  *= $res/72 * $xscale;
+		$height *= $res/72 * $yscale;
+		# Round up.
+		$width  = int ($width + 0.5) + 1;
+		$height = int ($height + 0.5) + 1;
+	    }
 	    print STDERR (", width=$width, height=$height\n") if $verbose;
+
+	    # Scale.
+	    $ps .= "$xscale $yscale scale\n"
+	      if $xscale != 1 || $yscale != 1;
+
+	    # Create PostScript code to translate coordinates.
+	    $ps .= (0-$1) . " " . (0-$2) . " translate\n"
+	      unless $1 == 0 && $2 == 0;
+
+	    # Include the image, show and quit.
+	    $ps .= "($eps_file) run\n".
+	      "showpage\n".
+		"quit\n";
+
 	    last;
 	}
 	elsif ( $line =~ /^%%EndComments/i ) {
@@ -225,6 +260,8 @@ sub handle_options {
 			     'antialias|aa=i'   => \$antialias,
 			     'noantialias|noaa' => sub { $antialias = 0 },
 			     'scale=f'     => \$scale,
+			     'width=i'	   => \$width,
+			     'height=i'	   => \$height,
 			     'output=s'    => \$output,
 			     'png'	   => \&set_out_type,
 			     'pngmono'	   => \&set_out_type,
@@ -239,7 +276,7 @@ sub handle_options {
 			     'gif'	   => \&set_out_type,
 			     'gifmono'	   => \&set_out_type,
 			     'mono!'	   => \$mono,
-			     'res=i'       => \$res,
+			     'resolution=i' => \$res,
 			     'pbm!'	   => \$use_pbm,
 			     'trace'	   => \$trace,
 			     'help'	   => \$help,
@@ -267,7 +304,9 @@ Usage: $0 [options] file [...]
                         produce JPG image
     -gif -gifmono       produce GIF image
     -[no]mono		monochrome/colour rendition
-    -res XXX		resolution (default = $res)
+    -width XXX		desired with
+    -height XXX		desired height
+    -resolution XXX	resolution (default = $res)
     -scale XXX		scaling factor
     -antialias XX	antialias factor (must be 0, 1, 2, 4 or 8; default: 4)
     -noantialias	no antialiasing (same as -antialias 0)
@@ -315,21 +354,111 @@ replaced by ".ppm". It is deleted upon completion.
 
 =head1 ARGUMENTS
 
-    -png -pngmono -pnggray -png16 -png256 -png16m
-                        produce PNG image
-    -jpg -jpggray -jpeg -jpeggray
-                        produce JPG image
-    -gif -gifmono       produce GIF image
-    -[no]mono		monochrome/colour rendition
-    -res XXX		resolution (default = 82)
-    -scale XXX		scaling factor
-    -antialias XX	antialias factor (default = 4)
-    -noantialias	do not antialias
-    -[no]pbm		GIF only: [do not] convert via pbm format
-    -output XXX		output to this file (only one input file)
-    -help		this message
-    -ident		show identification
-    -verbose		verbose information
+B<eps2png> always requires at least one argument: the name of the EPS
+file to be converted. It is possible to specify more than one file
+name. This will cause all named files to be converted into separate
+files, e.g., "C<sample.eps>" will be converted to "C<sample.png>" and
+so on.
+
+=over 4
+
+=item B<-png -pngmono -pnggray -png16 -png256 -png16m>
+
+Each of these options will instruct Ghostscript to use the
+corresponding bitmap generator, and supply a C<.png> default
+extension for output files.
+
+=item B<-jpg -jpggray -jpeg -jpeggray>
+
+Same, but with a C<.jpg> default extension for output files.
+
+=item B<-gif -gifmono>
+
+Same, but with a C<.gif> default extension for output files.
+
+Note: Since modern Ghostscript versions no longer support the GIF
+format due to copyright restrictions, B<eps2png> will request
+Ghostscript to produce a Portable Bitmap File (.ppm or .pbm) instead
+and run the B<ppmtogif> converter to produce the actual GIF file.
+
+=item B<-mono>
+
+This option will select monochrome (BW or gray) output. It forces the
+Ghostscript driver to C<pngmono>, C<jpeggray>, C<pbm>, or C<gifmono>.
+
+=item B<-nomono>
+
+Produces colour images. This is the default.
+
+=item B<-width> I<NN>
+
+The desired width of the output image.
+
+If B<-height> is not specified, the image will be scaled proportionally.
+
+=item B<-height> I<NN>
+
+The desired height of the output image.
+
+If B<-width> is not specified, the image will be scaled proportionally.
+
+=item B<-resolution> I<NN>
+
+Specifies the resolution for the output image. This is the width, in
+pixels, of the bitmap image for an EPS image of one inch wide (72
+PostScript points).
+
+Note that for best results, use the B<-width> and B<-height> options
+instead.
+
+Default value is 82, which causes the converted image to be of more
+or less the same size as the EPS image. On my screen, that is.
+
+=item B<-scale> I<NN>
+
+Specify a scaling factor. This may be a fractional number.
+
+For a one-inch EPS image, the resultant bitmap image will be
+I<scale> times I<resolution>.
+
+Note that for best results, use the B<-width> and B<-height> options
+instead.
+
+=item B<-antialias> I<NN>
+
+Sets the antialiasing depth. I<NN> must be 0 (no antialiasing), 1, 2,
+4, or 8. Default value is 4.
+
+=item B<-noantialias>
+
+Sets the antialiasing depth to 0.
+
+=item B<-pbm>
+
+Forces GIF conversion through the PBM converters.
+
+=item B<-nopbm>
+
+Forces GIF conversion through Ghostscript.
+
+=item B<-output> I<XXX>
+
+Stores the output in this file. Only one input file may be supplied if
+this option is specified.
+
+=item B<-help>
+
+Prints a help message and exits.
+
+=item B<-ident>
+
+Prints the program version before doing anything else.
+
+=item B<-verbose>
+
+Provides more verbose information.
+
+=back
 
 =head1 AUTHOR
 
@@ -342,6 +471,8 @@ accessible through the user's C<PATH>.
 
 GhostScript is assumed to be capable of handling all the image types
 listed above.
+
+The EPS should be well-behaving.
 
 =head1 COPYRIGHT AND DISCLAIMER
 

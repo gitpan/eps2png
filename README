@@ -1,9 +1,9 @@
 epf2png converts files from EPS format (Encapsulated PostScript) to
 PNG (Portable Network Graphics), JPEG or GIF formats.
 
-It uses GhostScript to produce the images. Since modern GhostScript
-programs do not support GIF due t copyright issues, GIF images are
-produced via the Portable BitMap converters (PBM-package).
+It uses Ghostscript to produce the images. Since modern GhostScript
+programs do not support GIF due to copyright issues, GIF images are
+produced via an additional converter from the Portable BitMap package.
 
 This program is distributed under the Perl Artistic License and the GPL.
 
@@ -81,12 +81,12 @@ eps2png:
   http://search.cpan.org/search?mode=dist&query=eps2png
   http://www.squirrel.nl/people/jvromans/sw_eps2png.html
 
-ghostscript:
+Ghostscript:
 
   http://www.ghostscript.org (GNU Ghostscript)
   http://sourceforge.net/projects/ghostscript (AFPL Ghostscript)
 
-portable bitmap package:
+Portable BitMap package:
 
   These packages (libgr from RedHat, netpbm and pbmplus) seems so
   abundant that I couldn't find any official web links ;-).
