@@ -8,3 +8,48 @@ Portable BitMap converters (PBM-package).
 This program is distributed under the Perl Artistic License.
 
      Johan Vromans <jvromans@squirrel.nl>
+
+INSTALLATION
+------------
+
+ * Prerequisites: - Unix
+		  - Perl5.004
+		  - a GhostScript installation that can handle the
+		    desired output formats (use `gs -h' to get a list of
+		    supported formats)
+		  - if you want GIF format and your GhostScript cannot
+		    produce this, the Portable BitMap package (pbmplus
+		    or netpbm)
+
+The program is distributed in the form of a gzipped tar (.tar.gz)
+file. Unpack this file in a scratch directory:
+
+  % gzip -d < eps2png-x.y.tar.gz | tar -xvf -
+
+This will create a sub-directory eps2png-x.y. Switch to this
+directory: 
+
+  % cd eps2png-x.y
+
+Execute the following commands. Note that this is the standard
+procedure for Perl extensions and programs:
+
+  % perl Makefile.PL
+  % make all
+  % make install
+
+The last command requires superuser (root) privilege.
+
+ADDITIONAL LINKS
+----------------
+
+The program is installed under the name eps2png. When invoked like
+this, it produces PNG images by default.
+You may install it under alternative names (or create links) for other
+default image formats:
+
+  eps2gif    -- will produce GIF images by default
+  eps2jpg    -- will produce JPEG images by default
+
+Note that, in any case, the desired output format can be selected
+using command line options.

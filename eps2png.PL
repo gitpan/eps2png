@@ -1,5 +1,3 @@
-#!/usr/local/bin/perl
-
 use Config;
 use File::Basename qw(&basename &dirname);
 
@@ -24,28 +22,24 @@ print "Extracting $file (with variable substitutions)\n";
 # In this section, perl variables will be expanded during extraction.
 # You can use $Config{...} to use Configure variables.
 
-print OUT <<"!GROK!THIS!";
-$Config{'startperl'} 
-!GROK!THIS!
 print OUT <<'!NO!SUBS!';
-my $RCS_Id = '$Id: eps2png.pl,v 1.1 1998-06-06 16:48:02+02 jv Exp $ ';
+#! perl
+
+my $RCS_Id = '$Id: eps2png.pl,v 1.4 1998-06-07 13:52:16+02 jv Exp $ ';
 
 # Author          : Johan Vromans
 # Created On      : Tue Sep 15 15:59:04 1992
 # Last Modified By: Johan Vromans
-# Last Modified On: Sat Jun  6 16:46:36 1998
-# Update Count    : 59
+# Last Modified On: Sun Jun  7 13:50:34 1998
+# Update Count    : 71
 # Status          : Unknown, Use with caution!
 
 ################ Common stuff ################
 
 use strict;
-use Getopt::Long;
+use Getopt::Long 2.1;
 
-# $LIBDIR = $ENV{"PUXLIB"} || "/usr/local/lib/pux";
-# unshift (@INC, $LIBDIR);
-# require "common.pl";
-my $my_package = "PUX";
+my $my_package = "Sciurix";
 my ($my_name, $my_version) = $RCS_Id =~ /: (.+).pl,v ([\d.]+)/;
 $my_version .= '*' if length('$Locker:  $ ') > 12;
 
@@ -198,7 +192,7 @@ foreach $eps_file ( @ARGV ) {
 	}
     }
     else {
-	print STDERR ("Unhandled output type: $format\n");
+	print STDERR ("ASSERT ERROR: Unhandled output type: $format\n");
 	exit (1);
     }
 
@@ -231,6 +225,10 @@ sub set_out_type () {
     elsif ( $opt =~ /^(jpg|jpeg)(gray)?$/ ) {
 	$format = 'jpg';
 	$gs_format = 'jpeg'.(defined $2 ? $2 : '');
+    }
+    else {
+	print STDERR ("ASSERT ERROR: Invalid value to set_out_type: $opt\n");
+	exit (1);
     }
 }
 
