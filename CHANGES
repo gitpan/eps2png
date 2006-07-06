@@ -1,3 +1,21 @@
+Release 2.5, Thu Jul 06, 2006
+=============================
+
+ * Updated CHANGES file.
+
+Release 2.4, Thu Jul 06, 2006
+=============================
+
+ * Add support for transparent PNGs.
+   Thanks to Jean_Baptiste Quenot.
+
+ * Updated reference images.
+
+Release 2.3, Thu Jun 01, 2006
+=============================
+
+ * Fixed a typo.
+
 Release 2.2, Mon Jun 25, 2001
 =============================
 
