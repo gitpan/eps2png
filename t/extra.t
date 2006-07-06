@@ -30,6 +30,7 @@ sub testit {
 
     if ( differ($ref, $out) ) {
 	print "not ok $t1\n"; $t1++;
+	#rename($out, "new$ref");
     }
     else {
 	print "ok $t1\n"; $t1++;
