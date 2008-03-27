@@ -1,8 +1,8 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         eps2png
-version:      2.5
-version_from: script/eps2png
+version:      2.6
+version_from: src/eps2png.pl
 installdirs:  site
 requires:
     Getopt::Long:                  2.1

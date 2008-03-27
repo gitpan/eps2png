@@ -1,3 +1,16 @@
+Release 2.6, Thu Mar 27, 2006
+=============================
+
+ * Better checks for BoundingBox.
+
+ * Better checks for Ghostscript.
+
+ * Prevent width/height from propagating.
+
+ * Configure for PBM fallback at build time.
+
+ * Add .spec file.
+
 Release 2.5, Thu Jul 06, 2006
 =============================
 

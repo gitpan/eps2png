@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 
-my $RCS_Id = '$Id: eps2png.pl,v 2.5 2006-07-06 17:40:40+02 jv Exp $ ';
+my $RCS_Id = '$Id: eps2png.pl,v 2.6 2008/03/27 15:07:11 jv Exp $ ';
 
 # Author          : Johan Vromans
 # Created On      : Tue Sep 15 15:59:04 1992
 # Last Modified By: Johan Vromans
-# Last Modified On: Thu Jul  6 17:40:32 2006
-# Update Count    : 159
+# Last Modified On: Thu Mar 27 16:06:22 2008
+# Update Count    : 165
 # Status          : Okay
 
 ################ Common stuff ################
@@ -19,15 +19,14 @@ my ($my_name, $my_version) = $RCS_Id =~ /: (.+).pl,v ([\d.]+)/;
 $my_version .= '*' if length('$Locker:  $ ') > 12;
 
 use vars qw($VERSION);
-( $VERSION ) = '$Revision: 2.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision: 2.6 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 ################ Program parameters ################
 
-### CONFIG
 # Some GhostScript programs can produce GIF directly.
 # If not, we need the PBM package for the conversion.
-my $use_pbm = 1;		# GhostScript can not produce GIF
-### END CONFIG
+# NOTE: This will be changed upon install.
+my $use_pbm = 0;
 
 my $res = 82;			# default resolution
 my $scale = 1;			# default scaling
@@ -79,12 +78,17 @@ foreach $eps_file ( @ARGV ) {
     my $ps = "";		# PostScript input data
     my $xscale;
     my $yscale;
+    my $gotbb;
+
+    # Prevent derived values from propagating.
+    my $width = $width;
+    my $height = $height;
 
     while ( $line = <EPS> ) {
 
 	# Search for BoundingBox.
 	if ( $line =~ /^%%BoundingBox:\s*(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/i ) {
-
+	    $gotbb++;
 	    print STDERR ("$eps_file: x0=$1, y0=$2, w=", $3-$1, ", h=", $4-$2)
 		if $verbose;
 
@@ -140,12 +144,16 @@ foreach $eps_file ( @ARGV ) {
 	    last;
 	}
 	elsif ( $line =~ /^%%EndComments/i ) {
-	    print STDERR ("No bounding box in $eps_file\n");
-	    $err++;
 	    last;
 	}
     }
     close (EPS);
+
+    unless ( $gotbb ) {
+	print STDERR ("No bounding box in $eps_file\n");
+	$err++;
+	return;
+    }
 
     my $out_file;		# output file
     my $pbm_file;		# temporary file for PBM conversion
@@ -477,7 +485,7 @@ The EPS should be well-behaving.
 
 =head1 COPYRIGHT AND DISCLAIMER
 
-This program is Copyright 1994 by Johan Vromans.
+This program is Copyright 1994,2008 by Johan Vromans.
 This program is free software; you can redistribute it and/or
 modify it under the terms of the Perl Artistic License or the
 GNU General Public License as published by the Free Software

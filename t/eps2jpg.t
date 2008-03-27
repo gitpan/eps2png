@@ -1,9 +1,13 @@
 #!/usr/bin/perl
-# $Id: eps2jpg.t,v 1.1 2001-06-23 12:44:53+02 jv Exp $
+# $Id: eps2jpg.t,v 1.2 2008/03/27 15:03:54 jv Exp $
 
-print "1..5\n";
+use Test::More;
+plan tests => 5;
 
-eval { require "t/basic.pl"; };
-print "$@\nnot ok 1\n" if $@;
+require_ok "t/basic.pl";
 
-testit ("jpg");
+SKIP: {
+    skip "GhostScript (gs) not available", 4
+      unless findbin("gs");
+    testit("jpg");
+}

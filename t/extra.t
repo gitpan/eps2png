@@ -1,41 +1,32 @@
 #!/usr/bin/perl
-# $Id: basic.pl,v 1.1 2001-06-23 12:44:59+02 jv Exp $
+# $Id: extra.t,v 1.2 2008/03/27 15:03:54 jv Exp $
 
-print "1..21\n";
+use Test::More;
+plan tests => 5 * 4;
 
-print "ok 1\n";
-
-my $t1 = 2;
-
-testit ("x0-120.png",    "-width", 120);
-testit ("x0-120.png",    "-height", 120);
-testit ("x0-80-120.png", "-width", 80, "-height", 120);
-testit ("x0-15.png",	 "-scale", 1.5);
+testit ("x0-120.png",    "-width",      120);
+testit ("x0-120.png",    "-height",     120);
+testit ("x0-80-120.png", "-width",      80, "-height", 120);
+testit ("x0-15.png",	 "-scale",      1.5);
 testit ("x0-81.png",	 "-resolution", 80);
+
+my $t = 0;
 
 sub testit {
     my $out = "t/x0.out";
     my $ref = "t/".shift;
 
+    unlink($out);
     @ARGV = ( @_, "-png", "-output", $out, "t/x0.eps" );
     delete $INC{"blib/script/eps2png"};
-    eval "package t$t1; require \"blib/script/eps2png\"";
-    print "$@\nnot " if $@;
-    print "ok $t1\n"; $t1++;
+    $t++;
+    eval "package t$t; require \"blib/script/eps2png\"";
+    ok(!$@, "eval: $@");
 
-    print "not " unless -s $out;
-    print "ok $t1\n"; $t1++;
-    print (-s $out, " <> ", -s $ref, "\nnot ") unless -s $out == -s $ref;
-    print "ok $t1\n"; $t1++;
+    ok(-s $out, "created: $out");
+    is(-s $out, -s $ref, "size check");
 
-    if ( differ($ref, $out) ) {
-	print "not ok $t1\n"; $t1++;
-	#rename($out, "new$ref");
-    }
-    else {
-	print "ok $t1\n"; $t1++;
-	unlink $out;
-    }
+    ok(!differ($ref, $out), "content check");
 }
 
 sub differ {

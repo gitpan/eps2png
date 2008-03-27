@@ -1,7 +1,7 @@
 #!/usr/bin/perl
-# $Id: basic.pl,v 1.1 2001-06-23 12:44:59+02 jv Exp $
+# $Id: basic.pl,v 1.2 2008/03/27 15:03:45 jv Exp $
 
-print "ok 1\n";
+use Test::More;
 
 sub testit {
     my ($type) = @_;
@@ -9,22 +9,11 @@ sub testit {
     my $ref = "t/x1.$type";
 
     @ARGV = ( "-$type", "-output", $out, "t/x1.eps" );
-    eval { require "blib/script/eps2png"; };
-    print "$@\nnot " if $@;
-    print "ok 2\n";
+    require_ok "blib/script/eps2png";
 
-    print "not " unless -s $out;
-    print "ok 3\n";
-    print (-s $out, " <> ", -s $ref, "\nnot ") unless -s $out == -s $ref;
-    print "ok 4\n";
-
-    if ( differ($ref, $out) ) {
-	print "not ok 5\n";
-    }
-    else {
-	print "ok 5\n";
-	unlink $out;
-    }
+    ok(-s $out, " created: $out");
+    is(-s $out, , -s $ref, "size check");
+    ok(!differ($ref, $out), "content check");
 }
 
 sub differ {
@@ -47,6 +36,19 @@ sub differ {
 	return 0 if $len1 == $len2 && $len1 == 0;
 	return 1 if $len1 != $len2 || ( $len1 && $buf1 ne $buf2 );
     }
+}
+
+sub findbin {
+    my $bin = shift;
+    my @path = split(":", $ENV{PATH});
+    unshift(@path, ".") if $^O =~ /^win/i;
+    foreach my $p ( @path ) {
+	return 1 if -x "$p/$bin";
+	next unless $^O =~ /^win/i;
+	return 1 if -x "$p/$bin.exe";
+	return 1 if -x "$p/$bin.bat";
+    }
+    return;
 }
 
 1;

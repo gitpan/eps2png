@@ -2,7 +2,9 @@ README
 CHANGES
 MANIFEST
 Makefile.PL
-script/eps2png
+eps2png.spec
+src/eps2png.pl
+script/.placeholder
 t/basic.pl
 t/eps2gif.t
 t/eps2jpg.t
