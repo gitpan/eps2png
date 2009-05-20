@@ -1,11 +1,14 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         eps2png
-version:      2.6
-version_from: src/eps2png.pl
-installdirs:  site
-requires:
+--- #YAML:1.0
+name:                eps2png
+version:             2.7
+abstract:            Convert EPS files to PNG, JPG or GIF
+license:             ~
+author:              
+    - Johan Vromans (jvromans@squirrel.nl)
+generated_by:        ExtUtils::MakeMaker version 6.42
+distribution_type:   module
+requires:     
     Getopt::Long:                  2.1
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.30
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

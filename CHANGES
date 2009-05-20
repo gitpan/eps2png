@@ -1,3 +1,11 @@
+Release 2.6, Thu Mar 20, 2009
+=============================
+
+ * Fix problem when converting a series of files, some with illegal
+   bounding boxes.
+
+ * Fix problem with non-integer bounding boxes and --height/--width.
+
 Release 2.6, Thu Mar 27, 2006
 =============================
 

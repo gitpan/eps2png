@@ -1,7 +1,7 @@
 # -*- rpm-spec -*-
 
 Name: eps2png
-Version: 2.6
+Version: 2.7
 Release: 1
 Source: %{name}-%{version}.tar.gz
 BuildArch: noarch
