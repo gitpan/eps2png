@@ -84,7 +84,7 @@ eps2png:
 Ghostscript:
 
   http://www.ghostscript.com (GNU Ghostscript)
-  http://sourceforge.net/projects/ghostscript (AFPL Ghostscript)
+  http://git.ghostscript.com (AFPL Ghostscript)
 
 Portable BitMap package:
 
